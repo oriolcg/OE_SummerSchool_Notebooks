@@ -6,8 +6,8 @@ import copy
 #----- Start Constants -----
 g = 9.81
 rad2deg = 90 / np.pi
-H0Start = 10.0
-LBedStart = 10.0
+HStartGlb = 10.0
+LBedStartGlb = 10.0
 #----- End Constants -----
 
 
@@ -39,7 +39,7 @@ def catenary_end_xz(W_pm, L_tot, EA, V0, H0, L_susp):
         
     return x, z
 
-#----- End Functions ----- 
+#----- End Functions -----
 
 
 #----- Start moorSeg -----
@@ -178,7 +178,7 @@ class moorLine2D:
 
     
     def solveEnd(self, V0, xtarg, ztarg,
-        H0Start=H0Start, LBedStart=LBedStart):        
+        H0Start=HStartGlb, LBedStart=LBedStartGlb):        
 
         data = V0, xtarg, ztarg, self
         root = optimize.fsolve(moorLine2D.objFnc, 
@@ -252,8 +252,8 @@ class moorLine3D:
         self.xflRef = 0.0
         self.yflRef = 0.0
         self.zflRef = 0.0
-        self.H0Start = H0Start
-        self.LBedStart = LBedStart
+        self.HStart = HStartGlb
+        self.LBedStart = LBedStartGlb
 
         self.xfl = 0.0
         self.yfl = 0.0
@@ -264,9 +264,9 @@ class moorLine3D:
         self.__isfrozen = True
 
     
-    def solveFl_xyz(self, V0, xfl, yfl, zfl, 
-        H0Start=H0Start, LBedStart=LBedStart):
-
+    def solveFl_xyz(self, xfl, yfl, zfl, 
+        HStart=HStartGlb, LBedStart=LBedStartGlb, V0 = 0.0):
+        
         self.xfl = xfl
         self.yfl = yfl
         self.zfl = zfl        
@@ -279,7 +279,7 @@ class moorLine3D:
         self.ny = (self.yfl - self.yan) / xtarg
 
         self.l2d.solveEnd( V0, xtarg, ztarg, 
-            H0Start=H0Start, LBedStart=LBedStart)    
+            H0Start=HStart, LBedStart=LBedStart)    
 
     
     def retFlForce(self):
@@ -288,6 +288,9 @@ class moorLine3D:
         Fz = self.l2d.Ve
 
         return Fx, Fy, Fz
+
+    def retFlForce_H(self):
+        return self.l2d.H0
 
 
     def retLBed(self):
@@ -300,12 +303,24 @@ class moorLine3D:
         return self.l2d.retLTot()
 
 
-    def setFlRef_xyz(self, xflRef, yflRef, zflRef):
+    def setRef_FLxyz(self, xflRef, yflRef, zflRef):
         self.xflRef = xflRef
         self.yflRef = yflRef
         self.zflRef = zflRef
 
+    def setRef_H(self, H0):
+        self.HStart = H0
 
+    def setRef_LBed(self, LBed):
+        self.LBedStart = LBed
+
+    def retRef_H(self):
+        return self.HStart
+
+    def retRef_LBed(self):
+        return self.LBedStart
+
+    
     def plotLine3D(self, ds):
 
         x2d, z2d, segTyp = self.l2d.plotLine2D(ds)
